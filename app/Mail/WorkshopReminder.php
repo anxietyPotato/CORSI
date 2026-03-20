@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Mail;
+
+use App\Models\Workshop;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+class WorkshopReminder extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public function __construct(
+        public Workshop $workshop
+    ) {}
+
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: "Reminder: {$this->workshop->title} is tomorrow!",
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.workshop-reminder',
+        );
+    }
+}
