@@ -46,13 +46,22 @@ function availableSeats(workshop) {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Workshops
                 </h2>
-                <Link
-                    v-if="isAdmin"
-                    :href="route('workshops.create')"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                    + New Workshop
-                </Link>
+                <div class="flex gap-3">
+                    <Link
+                        v-if="isAdmin"
+                        :href="route('statistics.index')"
+                        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                        📊 Statistics
+                    </Link>
+                    <Link
+                        v-if="isAdmin"
+                        :href="route('workshops.create')"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                    >
+                        + New Workshop
+                    </Link>
+                </div>
             </div>
         </template>
 
@@ -70,7 +79,7 @@ function availableSeats(workshop) {
                 >
                     <div class="flex justify-between items-start">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">{{ workshop.title }}</h3>
+                            <a :href="route('workshops.show', workshop.id)" class="text-lg font-bold text-gray-900 hover:text-indigo-600">{{ workshop.title }}</a>
                             <p class="text-gray-600 mt-1">{{ workshop.description }}</p>
                             <div class="mt-2 text-sm text-gray-500 space-y-1">
                                 <p>📅 {{ new Date(workshop.starts_at).toLocaleString() }} → {{ new Date(workshop.ends_at).toLocaleString() }}</p>
