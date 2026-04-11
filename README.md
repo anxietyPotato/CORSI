@@ -1,58 +1,113 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Internal Academy 🎓
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web application to manage company internal workshops and registrations, built as a technical challenge for Corsi.it.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Backend:** Laravel 13
+- **Frontend:** Vue.js 3 + Inertia.js
+- **Database:** MySQL
+- **Testing:** PHPUnit 12
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3+
+- Composer 2+
+- Node.js 22+
+- MySQL
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Clone the repository
+git clone https://github.com/anxietyPotato/CORSI
+cd CORSI
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Install dependencies
+composer install
+npm install
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 3. Environment setup
+copy .env.example .env
+php artisan key:generate
 
-## Agentic Development
+### 4. Configure database
+Update .env with your MySQL credentials:
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=internal_academy
+DB_USERNAME=root
+DB_PASSWORD=
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 5. Run migrations
+php artisan migrate
 
-```bash
-composer require laravel/boost --dev
+### 6. Seed test data
+php artisan db:seed
 
-php artisan boost:install
-```
+This creates:
+- Admin: admin@academy.com / password
+- Employee: employee@academy.com / password
+- 4 sample workshops
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 7. Start the application
 
-## Contributing
+Terminal 1:
+php artisan serve
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Terminal 2:
+npm run dev
 
-## Code of Conduct
+Visit: http://localhost:8000
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Running Tests
 
-## Security Vulnerabilities
+Create a test database called internal_academy_test in MySQL, then:
+php artisan test
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Artisan Commands
 
-## License
+Send reminder emails to tomorrow's workshop participants:
+php artisan academy:remind
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Features
+
+### Must Have
+- Two roles: Admin and Employee with different interfaces
+- Admin can create, edit and delete workshops
+- Each workshop has title, description, date/time and capacity
+- Employees can view future workshops and register with one click
+- Employees can cancel registration, immediately freeing the seat
+
+### Show Off Skills
+- Waiting List: When workshop is full, employees join waiting list. When a confirmed participant cancels, first person on waiting list is automatically promoted (FIFO)
+- No Ubiquity: Employees cannot register for two overlapping workshops
+- Reminder Command: php artisan academy:remind sends reminder emails to all participants of tomorrows workshops
+
+### Top Player Zone
+- Statistics Dashboard: Shows most popular workshop, total registrations per workshop with fill rate bars
+- Real-time Updates: Registration counter updates every 5 seconds via polling without page refresh
+- Tests: 36 passing feature and unit tests with PHPUnit
+
+## Architectural Decisions
+
+### PHP Enums over DB enums
+Used UserRole and RegistrationStatus PHP enums instead of database-level enums for better type safety, maintainability and IDE support.
+
+### MySQL InnoDB Engine
+Manually changed MySQL engine from MyISAM to InnoDB because MyISAM does not support foreign keys, which are essential for maintaining referential integrity between workshops and registrations.
+
+### Form Requests for validation
+Validation logic is separated from controllers using StoreWorkshopRequest and UpdateWorkshopRequest to keep controllers clean and focused on a single responsibility.
+
+### Workshop ownership
+Only the admin who created a workshop can edit or delete it. Other admins can view but not modify workshops they did not create. This decision was made to respect content ownership.
+
+### FIFO Waiting List
+When a confirmed participant cancels, the first person on the waiting list ordered by registered_at timestamp is automatically promoted to confirmed status, ensuring fair queue management.
+
+### Overlap Prevention
+Users cannot register for two workshops that overlap in time. This is enforced at the backend level in RegistrationController regardless of frontend state.
+
+### Polling over WebSockets
+Used simple polling every 5 seconds instead of WebSockets or Laravel Reverb for the real-time counter. This avoids unnecessary dependencies and infrastructure complexity while still delivering the real-time feel the requirement asked for.
